@@ -1,0 +1,2 @@
+1. `pip install -r requirements.txt`
+2. `python example_well_log_simple.py`
