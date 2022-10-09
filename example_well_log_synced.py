@@ -172,32 +172,65 @@ app.layout = html.Div(
         ),
         html.Div(
             style={"flex": 5},
-            children=webviz_subsurface_components.WellLogViewer(
+            children=webviz_subsurface_components.SyncLogViewer(
                 id="well-logs",
-                welllog=lith.get_webviz_well_log(lith.wells()[0]),
-                template={
-                    "name": "Template",
-                    "scale": {"primary": "MD"},
-                    "tracks": [
-                        {
-                            "plots": [
-                                {
-                                    "name": "DepositionalEnvironment",
-                                    "type": "stacked",
-                                }
-                            ]
+                welllogs=[
+                    {
+                        "header": {
+                            "name": "BLOCKING",
+                            "well": "NO 1/6-7 T2",
+                            "startIndex": 3069.0,
+                            "endIndex": 4879.0,
+                            "step": None,
                         },
-                        {
-                            "plots": [
-                                {
-                                    "name": "Lithostrat_unit",
-                                    "type": "stacked",
-                                    "colorTable": "Stratigraphy",
-                                }
-                            ]
-                        },
-                    ],
-                },
+                        "curves": [
+                            {
+                                "name": "MD",
+                                "description": "continuous",
+                                "quantity": "m",
+                                "unit": "m",
+                                "valueType": "float",
+                                "dimensions": 1,
+                            },
+                            {
+                                "name": "DepositionalEnvironment",
+                                "description": "discrete",
+                                "quantity": "DISC",
+                                "unit": "DISC",
+                                "valueType": "integer",
+                                "dimensions": 1,
+                            },
+                        ],
+                        "data": [[3069.0, 3100]],
+                    }
+                    for _ in lith.wells()[0:50]
+                ],
+                templates=[
+                    {
+                        "name": "Template",
+                        "scale": {"primary": "MD"},
+                        "tracks": [
+                            {
+                                "plots": [
+                                    {
+                                        "name": "DepositionalEnvironment",
+                                        "type": "stacked",
+                                    }
+                                ]
+                            },
+                            {
+                                "plots": [
+                                    {
+                                        "name": "Lithostrat_unit",
+                                        "type": "stacked",
+                                        "colorTable": "Stratigraphy",
+                                    }
+                                ]
+                            },
+                        ],
+                    },
+                ],
+                readoutOptions={"allTracks": False, "grouping": ""},
                 colorTables=COLORTABLES,
             ),
         ),
@@ -205,9 +238,44 @@ app.layout = html.Div(
 )
 
 
-@callback(Output("well-logs", "welllog"), Input("well", "value"))
+@callback(
+    Output("well-logs", "welllogs"),
+    Output("well-logs", "templates"),
+    Output("well-logs", "spacers"),
+    Output("well-logs", "wellDistances"),
+    Input("well", "value"),
+)
 def _set_well(well_names: str) -> dict:
-    return lith.get_webviz_well_log(well_names[0])
+    print(well_names)
+    logs = [lith.get_webviz_well_log(well_name) for well_name in well_names]
+    templates = [
+        {
+            "name": "Template",
+            "scale": {"primary": "MD"},
+            "tracks": [
+                {
+                    "plots": [
+                        {
+                            "name": "DepositionalEnvironment",
+                            "type": "stacked",
+                        }
+                    ]
+                },
+                {
+                    "plots": [
+                        {
+                            "name": "Lithostrat_unit",
+                            "type": "stacked",
+                            "colorTable": "Stratigraphy",
+                        }
+                    ]
+                },
+            ],
+        }
+        for _ in well_names
+    ]
+    spacers = [200 for _ in well_names]
+    return logs, templates, spacers, spacers
 
 
 if __name__ == "__main__":
